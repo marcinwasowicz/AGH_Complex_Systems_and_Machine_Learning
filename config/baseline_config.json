@@ -1,0 +1,36 @@
+{
+  "parameters": {
+    "beta_c": 0.03,
+    "beta_e": 0.03,
+    "alpha_m": 0.01,
+    "alpha_M": 0.07,
+    "s": 5e-4,
+    "kappa": 1,
+    "rho": 5e-3,
+    "delta": 3.34,
+    "lambda_": 100,
+    "gamma": 0.01
+  },
+  "initial_value": { "x_c": 100, "x_e": 29, "y": 100, "w": 50 },
+  "differential_t": 0.1,
+  "simulation_steps": 10000,
+  "parameters_sa_bounds": [
+    [1e-2, 5e-2],
+    [1e-2, 5e-2],
+    [0.2e-2, 1.8e-2],
+    [4e-2, 1e-1],
+    [3e-4, 7e-4],
+    [9, 10],
+    [3e-3, 7e-3],
+    [0.2e-5, 1.8e-5],
+    [20, 180],
+    [1e-2, 5e-2]
+  ],
+  "variables_sa_bounds": [
+    [20, 180],
+    [0.9, 1.1],
+    [20, 180],
+    [0.0, 1.0]
+  ],
+  "sa_parameters_sample_count": 2
+}
