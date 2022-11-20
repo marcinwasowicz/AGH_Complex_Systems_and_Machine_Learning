@@ -76,6 +76,7 @@ def simulate_handy(
     model_parameters: np.ndarray,
     differential_t: float,
     simulation_steps: int,
+    ignore_errors=True,
 ):
     ode_solver = ode(_handy_model_ode_f).set_integrator("lsoda")
     ode_solver.set_initial_value(initial_value, 0).set_f_params(model_parameters)
@@ -84,6 +85,8 @@ def simulate_handy(
 
     for _ in range(simulation_steps):
         if not ode_solver.successful():
-            break
+            if ignore_errors:
+                break
+            raise Exception("Simulation exploded")
         simulation.append(ode_solver.integrate(ode_solver.t + differential_t))
     return np.stack(simulation)
