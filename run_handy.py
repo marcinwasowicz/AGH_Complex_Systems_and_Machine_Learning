@@ -1,4 +1,5 @@
 import json
+import pickle
 import sys
 
 import matplotlib.pyplot as plt
@@ -38,9 +39,10 @@ def plot_handy(simulation, simulation_steps):
 
 
 def plot_sensitivity_analysis(sensitivity_analysis_result):
-    for symbol_idx, (symbol, symbol_sa) in enumerate(
-        sensitivity_analysis_result.items()
-    ):
+    with open("expensive_calc_results/sensitivity_analysis", "wb+") as sa_fd:
+        pickle.dump(sensitivity_analysis_result, sa_fd)
+
+    for symbol, symbol_sa in enumerate(sensitivity_analysis_result.items()):
         plt.title(symbol)
         x = [i for i in range(len(symbol_sa))]
         for parameter_symbol_idx, parameter_symbol in enumerate(

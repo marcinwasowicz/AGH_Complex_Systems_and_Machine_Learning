@@ -20,7 +20,7 @@ def sensitivity_analysis(
         "names": HANDY_PARAMETER_SYMBOLS,
         "bounds": parameters_sa_bounds,
     }
-    sample_parameters = saltelli.sample(problem, 256, calc_second_order=False)
+    sample_parameters = saltelli.sample(problem, 1024, calc_second_order=False)
     simulations = []
     for parameters in sample_parameters:
         try:
