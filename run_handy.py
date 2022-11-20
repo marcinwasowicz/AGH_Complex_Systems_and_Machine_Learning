@@ -10,6 +10,7 @@ from handy.handy_prototype import (
     HANDY_PARAMETER_SYMBOLS,
     HANDY_VARIABLES_SYMBOLS,
 )
+from handy.handy_sa_analysis import sensitivity_analysis
 
 
 def norm(arr):
@@ -36,8 +37,28 @@ def plot_handy(simulation, simulation_steps):
     plt.show()
 
 
+def plot_sensitivity_analysis(sensitivity_analysis_result):
+    for symbol_idx, (symbol, symbol_sa) in enumerate(
+        sensitivity_analysis_result.items()
+    ):
+        plt.title(symbol)
+        x = [i for i in range(len(symbol_sa))]
+        for parameter_symbol_idx, parameter_symbol in enumerate(
+            HANDY_PARAMETER_SYMBOLS
+        ):
+            y = symbol_sa[:, parameter_symbol_idx]
+            plt.plot(x, y, label=parameter_symbol)
+        plt.legend()
+        plt.show()
+
+
 if __name__ == "__main__":
-    _script, config_path = sys.argv
+    _script, config_path, command = sys.argv
+
+    assert command in [
+        "SA",
+        "RUN",
+    ], f"Unrecognized command, SA for sensitivity analysis, and RUN for plotting simulation"
 
     with open(config_path, "r") as config_fd:
         config_json = json.load(config_fd)
@@ -46,10 +67,15 @@ if __name__ == "__main__":
     initial_value = pack_variables(config_json["initial_value"])
     differential_t = float(config_json["differential_t"])
     simulation_steps = config_json["simulation_steps"]
-    parameters_sa_bounds = config_json["parameters_sa_bounds"]
-    sa_parameters_sample_count = config_json["sa_parameters_sample_count"]
 
-    simulation = simulate_handy(
-        initial_value, parameters, differential_t, simulation_steps
-    )
-    plot_handy(simulation, min(simulation_steps, len(simulation)))
+    if command == "RUN":
+        simulation = simulate_handy(
+            initial_value, parameters, differential_t, simulation_steps
+        )
+        plot_handy(simulation, min(simulation_steps, len(simulation)))
+    if command == "SA":
+        parameters_sa_bounds = config_json["parameters_sa_bounds"]
+        sa = sensitivity_analysis(
+            parameters_sa_bounds, initial_value, differential_t, simulation_steps
+        )
+        plot_sensitivity_analysis(sa)
