@@ -130,3 +130,6 @@ dmypy.json
 
 # Expensive calculation results
 expensive_calc_results/
+
+# Plots
+plots/
