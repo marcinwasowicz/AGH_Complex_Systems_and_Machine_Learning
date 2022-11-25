@@ -1,0 +1,17 @@
+{
+  "parameters": {
+    "beta_c": 0.03,
+    "beta_e": 0.03,
+    "alpha_m": 0.01,
+    "alpha_M": 0.07,
+    "s": 5e-4,
+    "kappa": 1,
+    "rho": 1e-2,
+    "delta": 3.34,
+    "lambda_": 100,
+    "gamma": 0.01
+  },
+  "initial_value": { "x_c": 100, "x_e": 29, "y": 100, "w": 50 },
+  "differential_t": 0.1,
+  "simulation_steps": 10000
+}
