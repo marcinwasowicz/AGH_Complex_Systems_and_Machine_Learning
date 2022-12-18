@@ -88,10 +88,10 @@ if __name__ == "__main__":
             len(test),
             torch.from_numpy(transform(initial_extrapolation_state)).float(),
         )
-        plot_handy_partial(transform(test), len(test), differential_t)
+        plot_handy_partial(test, len(test), differential_t)
 
         plot_handy_partial(
-            extrapolation,
+            inverse_transform(extrapolation),
             len(extrapolation),
             differential_t,
         )
