@@ -1,7 +1,7 @@
 import json
 import sys
 
-from auto_esn.esn.esn import GroupedDeepESN, DeepESN
+from auto_esn.esn.esn import GroupedDeepESN
 import numpy as np
 import torch
 
@@ -61,18 +61,21 @@ if __name__ == "__main__":
     simulation = simulate_handy(
         initial_value, parameters, differential_t, simulation_steps
     )
+    simulation_length = len(simulation)
     transform, inverse_transform = prepare_transformations(simulation)
-
-    for config in [(4500, 5500, 0.9)]:
+    for config in [
+        (int(0.45 * simulation_length), int(0.55 * simulation_length), 0.90)
+    ]:
         window_start, window_end, train_fraction = config
         X_train, y_train, test, initial_extrapolation_state = prepare_training_data(
             simulation, window_start, window_end, train_fraction
         )
 
-        model = DeepESN(
+        model = GroupedDeepESN(
+            groups=3,
             input_size=4,
-            num_layers=3,
-            hidden_size=1000,
+            num_layers=(3, 3, 3),
+            hidden_size=500,
         ).float()
 
         model.fit(

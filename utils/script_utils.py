@@ -38,13 +38,13 @@ def plot_handy_partial(simulation, simulation_steps, differential_t):
     steps_array = [i * differential_t for i in range(simulation_steps)]
     _fig, axs = plt.subplots(2, 2)
     axs[0, 0].plot(steps_array, simulation.T[0])
-    axs[0, 0].set_title(HANDY_PARAMETER_SYMBOLS[0])
+    axs[0, 0].set_title(HANDY_VARIABLES_SYMBOLS[0])
     axs[0, 1].plot(steps_array, simulation.T[1])
-    axs[0, 1].set_title(HANDY_PARAMETER_SYMBOLS[1])
+    axs[0, 1].set_title(HANDY_VARIABLES_SYMBOLS[1])
     axs[1, 0].plot(steps_array, simulation.T[2])
-    axs[1, 0].set_title(HANDY_PARAMETER_SYMBOLS[2])
+    axs[1, 0].set_title(HANDY_VARIABLES_SYMBOLS[2])
     axs[1, 1].plot(steps_array, simulation.T[3])
-    axs[1, 1].set_title(HANDY_PARAMETER_SYMBOLS[3])
+    axs[1, 1].set_title(HANDY_VARIABLES_SYMBOLS[3])
     plt.show()
 
 
