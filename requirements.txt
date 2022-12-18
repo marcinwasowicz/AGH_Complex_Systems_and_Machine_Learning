@@ -1,5 +1,7 @@
+auto-ens
 black
 numpy
 optuna
 SALib
 scipy
+torch
