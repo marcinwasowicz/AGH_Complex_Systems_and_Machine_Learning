@@ -26,15 +26,19 @@ def pack_variables(variables_json):
     )
 
 
-def plot_handy(simulation, simulation_steps, differential_t):
+def plot_handy(simulation, simulation_steps, differential_t, path=None):
     steps_array = [i * differential_t for i in range(simulation_steps)]
     for symbol_idx, symbol in enumerate(HANDY_VARIABLES_SYMBOLS):
         plt.plot(steps_array, norm(simulation.T[symbol_idx]), label=symbol)
     plt.legend()
+    if path:
+        plt.savefig(path)
+        plt.clf()
+        return
     plt.show()
 
 
-def plot_handy_partial(simulation, simulation_steps, differential_t):
+def plot_handy_partial(simulation, simulation_steps, differential_t, path=None):
     steps_array = [i * differential_t for i in range(simulation_steps)]
     _fig, axs = plt.subplots(2, 2)
     axs[0, 0].plot(steps_array, simulation.T[0])
@@ -45,6 +49,10 @@ def plot_handy_partial(simulation, simulation_steps, differential_t):
     axs[1, 0].set_title(HANDY_VARIABLES_SYMBOLS[2])
     axs[1, 1].plot(steps_array, simulation.T[3])
     axs[1, 1].set_title(HANDY_VARIABLES_SYMBOLS[3])
+    if path:
+        plt.savefig(path)
+        plt.clf()
+        return
     plt.show()
 
 
