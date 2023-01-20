@@ -9,10 +9,10 @@ sys.path.insert(0, ".")
 from handy.handy_prototype import (
     simulate_handy,
 )
-from utils import pack_parameters, pack_variables, plot_handy_partial
+from utils import pack_parameters, pack_variables, plot_handy
 
 
-def prepare_training_data(simulation, window_start, window_end, train_fraction):
+def split_data(simulation, window_start, window_end, train_fraction):
     data = simulation[window_start:window_end]
 
     split_idx = int((window_end - window_start) * train_fraction)
@@ -47,6 +47,38 @@ def evaluate_model(model, extrapolation_steps, state):
     return torch.vstack(result).detach().numpy()
 
 
+def train_and_evaluate_model(x, y, test, transform, inverse_transform, state, repeats):
+    best_extrapolation = None
+    best_mae = np.inf
+
+    for _ in range(repeats):
+        model = GroupedDeepESN(
+            groups=3,
+            input_size=4,
+            num_layers=(3, 3, 3),
+            hidden_size=500,
+        ).float()
+
+        model.fit(
+            torch.from_numpy(transform(x)).float(),
+            torch.from_numpy(transform(y)).float(),
+        )
+        extrapolation = inverse_transform(
+            evaluate_model(
+                model,
+                len(test),
+                torch.from_numpy(transform(state)).float(),
+            )
+        )
+
+        mae = np.mean(np.abs(extrapolation - test))
+        if mae < best_mae:
+            best_mae = mae
+            best_extrapolation = extrapolation
+
+    return best_extrapolation
+
+
 if __name__ == "__main__":
     _script, config_path = sys.argv
 
@@ -58,40 +90,122 @@ if __name__ == "__main__":
     differential_t = float(config_json["differential_t"])
     simulation_steps = config_json["simulation_steps"]
 
-    simulation = simulate_handy(
+    baseline_simulation = simulate_handy(
         initial_value, parameters, differential_t, simulation_steps
     )
-    simulation_length = len(simulation)
-    transform, inverse_transform = prepare_transformations(simulation)
+    simulation_length = len(baseline_simulation)
+    transform, inverse_transform = prepare_transformations(baseline_simulation)
+
+    surogate_simulation_1 = simulate_handy(
+        initial_value,
+        parameters,
+        differential_t,
+        simulation_steps,
+        simplify_consumption_rates=True,
+        simplify_death_rates=False,
+    )
+    surogate_simulation_2 = simulate_handy(
+        initial_value,
+        parameters,
+        differential_t,
+        simulation_steps,
+        simplify_consumption_rates=True,
+        simplify_death_rates=True,
+    )
+    surogate_simulation_3 = simulate_handy(
+        initial_value,
+        parameters,
+        differential_t,
+        simulation_steps,
+        simplify_consumption_rates=False,
+        simplify_death_rates=True,
+    )
+
     for config in [
-        (int(0.45 * simulation_length), int(0.55 * simulation_length), 0.90)
+        (
+            int(0.45 * simulation_length),
+            int(0.56 * simulation_length),
+            0.5,
+            "_550_100_next",
+        ),
+        (int(0.45 * simulation_length), simulation_length, 0.1, "_500_till_end"),
+        (
+            int(0.45 * simulation_length),
+            int(0.56 * simulation_length),
+            0.91,
+            "_1000_100_next",
+        ),
+        (int(0.45 * simulation_length), simulation_length, 0.18, "_1000_till_end"),
+        (
+            int(0.45 * simulation_length),
+            int(0.61 * simulation_length),
+            0.94,
+            "_1500_100_next",
+        ),
+        (int(0.45 * simulation_length), simulation_length, 0.27, "_1500_till_end"),
     ]:
-        window_start, window_end, train_fraction = config
-        X_train, y_train, test, initial_extrapolation_state = prepare_training_data(
-            simulation, window_start, window_end, train_fraction
+        window_start, window_end, train_fraction, name = config
+
+        _, _, surogate_result_1, _ = split_data(
+            surogate_simulation_1, window_start, window_end, train_fraction
+        )
+        _, _, surogate_result_2, _ = split_data(
+            surogate_simulation_2, window_start, window_end, train_fraction
+        )
+        _, _, surogate_result_3, _ = split_data(
+            surogate_simulation_3, window_start, window_end, train_fraction
         )
 
-        model = GroupedDeepESN(
-            groups=3,
-            input_size=4,
-            num_layers=(3, 3, 3),
-            hidden_size=500,
-        ).float()
-
-        model.fit(
-            torch.from_numpy(transform(X_train)).float(),
-            torch.from_numpy(transform(y_train)).float(),
+        X_train, y_train, test, initial_extrapolation_state = split_data(
+            baseline_simulation, window_start, window_end, train_fraction
         )
 
-        extrapolation = evaluate_model(
-            model,
-            len(test),
-            torch.from_numpy(transform(initial_extrapolation_state)).float(),
+        esn_extrapolation = train_and_evaluate_model(
+            x=X_train,
+            y=y_train,
+            test=test,
+            transform=transform,
+            inverse_transform=inverse_transform,
+            state=initial_extrapolation_state,
+            repeats=20,
         )
-        plot_handy_partial(test, len(test), differential_t)
 
-        plot_handy_partial(
-            inverse_transform(extrapolation),
-            len(extrapolation),
+        plot_handy(test, len(test), differential_t, path=f"./esn_vs_surogates_plots/baseline_{name}")
+        plot_handy(
+            esn_extrapolation,
+            len(esn_extrapolation),
             differential_t,
+            path=f"./esn_vs_surogates_plots/esn_{name}",
         )
+        plot_handy(
+            surogate_result_1,
+            len(surogate_result_1),
+            differential_t,
+            path=f"./esn_vs_surogates_plots/sur_1_{name}",
+        )
+        plot_handy(
+            surogate_result_2,
+            len(surogate_result_2),
+            differential_t,
+            path=f"./esn_vs_surogates_plots/sur_2_{name}",
+        )
+        plot_handy(
+            surogate_result_3,
+            len(surogate_result_3),
+            differential_t,
+            path=f"./esn_vs_surogates_plots/sur_3_{name}",
+        )
+
+        with open(f"./esn_vs_surogates_plots/mae_{name}.txt", "w+") as mae_f:
+            mae_f.write(
+                f"MAE of ESN extrapolation: {np.mean(np.abs(test.T - esn_extrapolation.T), axis=-1)}\n"
+            )
+            mae_f.write(
+                f"MAE of surogate 1 extrapolation: {np.mean(np.abs(test.T - surogate_result_1.T), axis=-1)}\n"
+            )
+            mae_f.write(
+                f"MAE of surogate 2 extrapolation: {np.mean(np.abs(test.T - surogate_result_2.T), axis=-1)}\n"
+            )
+            mae_f.write(
+                f"MAE of surogate 3 extrapolation: {np.mean(np.abs(test.T - surogate_result_3.T), axis=-1)}\n"
+            )
