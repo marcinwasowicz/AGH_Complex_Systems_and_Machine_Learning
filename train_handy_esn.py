@@ -125,10 +125,24 @@ if __name__ == "__main__":
         (
             int(0.45 * simulation_length),
             int(0.56 * simulation_length),
-            0.91,
-            "100_next",
+            0.5,
+            "_550_100_next",
         ),
-        (int(0.45 * simulation_length), simulation_length, 0.18, "till_end"),
+        (int(0.45 * simulation_length), simulation_length, 0.1, "_500_till_end"),
+        (
+            int(0.45 * simulation_length),
+            int(0.56 * simulation_length),
+            0.91,
+            "_1000_100_next",
+        ),
+        (int(0.45 * simulation_length), simulation_length, 0.18, "_1000_till_end"),
+        (
+            int(0.45 * simulation_length),
+            int(0.61 * simulation_length),
+            0.94,
+            "_1500_100_next",
+        ),
+        (int(0.45 * simulation_length), simulation_length, 0.27, "_1500_till_end"),
     ]:
         window_start, window_end, train_fraction, name = config
 
@@ -156,33 +170,33 @@ if __name__ == "__main__":
             repeats=20,
         )
 
-        plot_handy(test, len(test), differential_t, path=f"./plots/baseline_{name}")
+        plot_handy(test, len(test), differential_t, path=f"./esn_vs_surogates_plots/baseline_{name}")
         plot_handy(
             esn_extrapolation,
             len(esn_extrapolation),
             differential_t,
-            path=f"./plots/esn_{name}",
+            path=f"./esn_vs_surogates_plots/esn_{name}",
         )
         plot_handy(
             surogate_result_1,
             len(surogate_result_1),
             differential_t,
-            path=f"./plots/sur_1_{name}",
+            path=f"./esn_vs_surogates_plots/sur_1_{name}",
         )
         plot_handy(
             surogate_result_2,
             len(surogate_result_2),
             differential_t,
-            path=f"./plots/sur_2_{name}",
+            path=f"./esn_vs_surogates_plots/sur_2_{name}",
         )
         plot_handy(
             surogate_result_3,
             len(surogate_result_3),
             differential_t,
-            path=f"./plots/sur_3_{name}",
+            path=f"./esn_vs_surogates_plots/sur_3_{name}",
         )
 
-        with open(f"./plots/mae_{name}.txt", "w+") as mae_f:
+        with open(f"./esn_vs_surogates_plots/mae_{name}.txt", "w+") as mae_f:
             mae_f.write(
                 f"MAE of ESN extrapolation: {np.mean(np.abs(test.T - esn_extrapolation.T), axis=-1)}\n"
             )
